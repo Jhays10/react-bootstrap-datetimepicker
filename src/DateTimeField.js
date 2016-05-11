@@ -6,7 +6,6 @@ import Constants from "./Constants.js";
 
 export default class DateTimeField extends Component {
   static defaultProps = {
-    dateTime: moment().format("x"),
     format: "x",
     showToday: true,
     viewMode: "days",
@@ -63,9 +62,9 @@ export default class DateTimeField extends Component {
         left: -9999,
         zIndex: "9999 !important"
       },
-      viewDate: moment(this.props.dateTime, this.props.format, true).startOf("month"),
-      selectedDate: moment(this.props.dateTime, this.props.format, true),
-      inputValue: typeof this.props.defaultText !== "undefined" ? this.props.defaultText : moment(this.props.dateTime, this.props.format, true).format(this.resolvePropsInputFormat())
+      viewDate: moment(this.props.dateTime || moment(), this.props.format, true).startOf("month"),
+      selectedDate: moment(this.props.dateTime || moment(), this.props.format, true),
+      inputValue: this.props.dateTime ? moment(this.props.dateTime, this.props.format, true).format(this.resolvePropsInputFormat()) : ''
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -87,19 +86,19 @@ export default class DateTimeField extends Component {
 
   onChange = (event) => {
     const value = event.target == null ? event : event.target.value;
-    if (moment(value, this.state.inputFormat, true).isValid()) {
-      this.setState({
-        selectedDate: moment(value, this.state.inputFormat, true),
-        viewDate: moment(value, this.state.inputFormat, true).startOf("month")
-      });
-    }
+    const isValidDate = moment(value, this.state.inputFormat, true).isValid();
+    const date = moment((isValidDate ? value : moment()), this.state.inputFormat, true);
 
-    return this.setState({
-      inputValue: value
-    }, function() {
-      return this.props.onChange(moment(this.state.inputValue, this.state.inputFormat, true).format(this.props.format), value);
+    this.props.onChange((isValidDate ? date : ''), value);
+
+    this.setState({
+      selectedDate: date,
+      viewDate: date
     });
 
+    return this.setState({
+      inputValue: value ? value : ''
+    });
   }
 
   getValue = () => {
@@ -375,7 +374,7 @@ export default class DateTimeField extends Component {
                   widgetStyle={this.state.widgetStyle}
             />
             <div className={"input-group date " + this.size()} ref="datetimepicker">
-              <input className="form-control" onChange={this.onChange} type="text" value={this.state.inputValue} {...this.props.inputProps}/>
+              <input className="form-control" placeholder={this.props.defaultText} onChange={this.onChange} type="text" value={this.state.inputValue} {...this.props.inputProps}/>
               <span className="input-group-addon" onBlur={this.onBlur} onClick={this.onClick} ref="dtpbutton">
                 <span className={classnames("glyphicon", this.state.buttonIcon)} />
               </span>
