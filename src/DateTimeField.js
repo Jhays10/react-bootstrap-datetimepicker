@@ -89,7 +89,7 @@ export default class DateTimeField extends Component {
     const isValidDate = moment(value, this.state.inputFormat, true).isValid();
     const date = moment((isValidDate ? value : moment()), this.state.inputFormat, true);
 
-    this.props.onChange((isValidDate ? date : ''), value);
+    this.props.onChange((isValidDate ? date.format(this.props.format) : ''), value);
 
     this.setState({
       selectedDate: date,
